@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Admin – Delivery Hub</title>
+<style>
+:root{--navy:#14213d;--sun:#f7b32b;--ash:#e8ebef;--ink:#1b2333;--muted:#5b667a;--ok:#0b7a4f;--bad:#b3261e}
+*{box-sizing:border-box;margin:0}
+body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#f4f6f9;color:var(--ink);line-height:1.5}
+[hidden]{display:none!important}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid #0e7c86;outline-offset:2px}
+.bar{background:var(--navy);color:#fff;display:flex;align-items:center;gap:18px;padding:0 20px;height:60px;position:sticky;top:0;z-index:5}
+.bar b{font-size:1.15rem}
+.bar .sp{margin-left:auto}
+nav{display:flex;gap:6px;overflow-x:auto}
+nav button{background:none;border:0;color:#cfd7e6;padding:8px 14px;border-radius:8px;cursor:pointer;white-space:nowrap}
+nav button[aria-current=true]{background:var(--sun);color:var(--navy);font-weight:600}
+main{padding:22px 20px 60px;max-width:1300px;margin:0 auto}
+h1{font-size:1.5rem;margin-bottom:14px}
+.card{background:#fff;border:1px solid var(--ash);border-radius:14px;padding:18px;margin-bottom:22px}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.93rem}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--ash);vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:.82rem;white-space:nowrap}
+.btn{border:0;border-radius:8px;padding:8px 14px;cursor:pointer;font-weight:600;background:var(--navy);color:#fff}
+.btn.sun{background:var(--sun);color:var(--navy)}
+.btn.ghost{background:#fff;border:1.5px solid var(--ash);color:var(--ink)}
+.btn.bad{background:#fff;border:1.5px solid var(--bad);color:var(--bad)}
+.in{border:1.5px solid var(--ash);border-radius:8px;padding:8px 10px;background:#fff;max-width:100%}
+.in.sm{width:90px}
+.tag{display:inline-block;border-radius:999px;padding:2px 10px;font-size:.8rem;font-weight:600;background:var(--ash)}
+.tag.ok{background:#d6f2e4;color:var(--ok)}.tag.wait{background:#fdecc4;color:#7a5200}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;align-items:end}
+.grid label{font-size:.85rem;color:var(--muted);display:block;margin-bottom:4px}
+.msg{margin-top:10px;font-weight:500}.msg.err{color:var(--bad)}
+.muted{color:var(--muted)}
+#login{min-height:100vh;display:grid;place-items:center;padding:20px}
+#login form{background:#fff;border-radius:16px;padding:30px;width:min(380px,100%);border:1px solid var(--ash)}
+#login h1{margin-bottom:4px}#login label{display:block;margin:14px 0 4px;font-size:.9rem}
+#login .in{width:100%}
+</style>
+</head>
+<body>
+
+<div id="login">
+  <form id="loginForm">
+    <h1>Delivery Hub admin</h1>
+    <p class="muted">Sign in with your admin account.</p>
+    <label for="em">Email</label><input class="in" id="em" type="email" autocomplete="username" required>
+    <label for="pw">Password</label><input class="in" id="pw" type="password" autocomplete="current-password" required>
+    <div style="margin-top:20px"><button class="btn sun" style="width:100%" type="submit">Sign in</button></div>
+    <p class="msg err" id="loginErr" role="alert"></p>
+  </form>
+</div>
+
+<div id="app" hidden>
+  <div class="bar">
+    <b>Delivery Hub admin</b>
+    <nav id="tabs" aria-label="Sections">
+      <button data-t="orders">Orders</button><button data-t="products">Products</button><button data-t="vendors">Vendors</button><button data-t="apps">Applications</button><button data-t="riders">Riders</button>
+    </nav>
+    <button class="btn ghost sp" id="logout">Sign out</button>
+  </div>
+  <main id="view"></main>
+</div>
+
+<script>
+const SB = {
+  url: "https://srqobuprjnnoxtcsvxic.supabase.co",
+  key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNycW9idXByam5ub3h0Y3N2eGljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEwMzQzMjAsImV4cCI6MjEwNjYxMDMyMH0.3yjB9YKl3IDmP3cmaOiHFem_gz3alceC2liqPDMy1jA"
+};
+const STATUSES = ["placed","paid","packing","out_for_delivery","delivered"];
+const ARTS = ["chicken","salad","pancakes","pizza","bag","milk","crate","fruit","clean","parcel","boxes"];
+const CATS = ["Food","Groceries","Household","Courier"];
+let token = null, tab = "orders";
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const money = n => "$" + Number(n).toFixed(2);
+
+async function api(path, o = {}){
+  const r = await fetch(`${SB.url}/rest/v1/${path}`, {
+    method: o.method || "GET",
+    headers: Object.assign({apikey: SB.key, Authorization: "Bearer " + token, "Content-Type": "application/json"}, o.prefer ? {Prefer: o.prefer} : {}),
+    body: o.body ? JSON.stringify(o.body) : undefined
+  });
+  if(r.status === 401){ logout(); throw new Error("Your session expired. Sign in again."); }
+  if(!r.ok) throw new Error(await r.text());
+  const t = await r.text(); return t ? JSON.parse(t) : null;
+}
+
+/* ---------- sign in ---------- */
+async function isAdmin(){ try{ return (await api("rpc/is_admin", {method:"POST", body:{}})) === true; }catch(e){ return false; } }
+async function start(){
+  if(!(await isAdmin())){ token = null; try{ sessionStorage.removeItem("dh_admin"); }catch(e){} return false; }
+  $("#login").hidden = true; $("#app").hidden = false; show(tab); return true;
+}
+function logout(){ token = null; try{ sessionStorage.removeItem("dh_admin"); }catch(e){} $("#app").hidden = true; $("#login").hidden = false; }
+$("#logout").onclick = logout;
+$("#loginForm").onsubmit = async e => {
+  e.preventDefault(); $("#loginErr").textContent = "";
+  try{
+    const r = await fetch(`${SB.url}/auth/v1/token?grant_type=password`, {method:"POST", headers:{apikey:SB.key, "Content-Type":"application/json"}, body:JSON.stringify({email:$("#em").value.trim(), password:$("#pw").value})});
+    const j = await r.json();
+    if(!r.ok) throw new Error(j.error_description || j.msg || "Sign in failed");
+    token = j.access_token; try{ sessionStorage.setItem("dh_admin", token); }catch(e){}
+    if(!(await start())) $("#loginErr").textContent = "This account is not set up as an admin.";
+  }catch(err){ $("#loginErr").textContent = err.message; }
+};
+try{ const t = sessionStorage.getItem("dh_admin"); if(t){ token = t; start().then(ok => { if(!ok) logout(); }); } }catch(e){}
+
+/* ---------- tabs ---------- */
+$("#tabs").onclick = e => { const b = e.target.closest("button"); if(b){ tab = b.dataset.t; show(tab); } };
+async function show(t){
+  [...$("#tabs").children].forEach(b => b.setAttribute("aria-current", b.dataset.t === t));
+  $("#view").innerHTML = '<p class="muted">Loading…</p>';
+  try{ await ({orders:vOrders, products:vProducts, vendors:vVendors, apps:vApps, riders:vRiders})[t](); }
+  catch(err){ $("#view").innerHTML = `<p class="msg err">${esc(err.message)}</p>`; }
+}
+const opts = (list, sel) => list.map(x => `<option value="${esc(x)}"${x === sel ? " selected" : ""}>${esc(x.replace(/_/g," "))}</option>`).join("");
+function notice(m, bad){ const el = $("#note"); if(el){ el.textContent = m; el.className = "msg" + (bad ? " err" : ""); } }
+
+/* ---------- orders ---------- */
+async function vOrders(){
+  const [rows, riders] = await Promise.all([
+    api("orders?select=*,order_items(name,qty),riders(full_name)&order=created_at.desc&limit=100"),
+    api("riders?select=id,full_name&status=eq.approved&order=full_name")
+  ]);
+  const body = rows.map(o => `<tr>
+    <td><b>${esc(o.reference)}</b><br><span class="muted">${new Date(o.created_at).toLocaleString()}</span></td>
+    <td>${esc(o.customer_name)}<br><span class="muted">${esc(o.phone)}</span><br><span class="muted">${esc(o.address)}</span></td>
+    <td>${o.order_items.map(i => `${esc(i.qty)} × ${esc(i.name)}`).join("<br>")}</td>
+    <td>${money(o.total)}</td>
+    <td><span class="tag ${o.payment_status === "paid" ? "ok" : "wait"}">${esc(o.payment_method)} · ${esc(o.payment_status)}</span>
+      ${o.payment_status !== "paid" ? `<br><button class="btn sun" style="margin-top:6px" data-act="pay" data-id="${o.id}" data-status="${esc(o.status)}">Confirm payment</button>` : ""}</td>
+    <td><select class="in" data-act="status" data-id="${o.id}">${opts(STATUSES, o.status)}</select></td>
+    <td><select class="in" data-act="rider" data-id="${o.id}"><option value="">Unassigned</option>${riders.map(r => `<option value="${r.id}"${r.id === o.rider_id ? " selected" : ""}>${esc(r.full_name)}</option>`).join("")}</select></td>
+  </tr>`).join("");
+  $("#view").innerHTML = `<h1>Orders</h1><p class="muted" style="margin-bottom:12px">Latest 100 orders. Confirm payment once the bank transfer has arrived.</p><p id="note" class="msg"></p>
+    <div class="card scroll"><table><thead><tr><th>Order</th><th>Customer</th><th>Items</th><th>Total</th><th>Payment</th><th>Status</th><th>Rider</th></tr></thead><tbody>${body || '<tr><td colspan="7" class="muted">No orders yet.</td></tr>'}</tbody></table></div>`;
+}
+
+/* ---------- products ---------- */
+async function vProducts(){
+  const [rows, vendors] = await Promise.all([api("products?select=*,vendors(name)&order=vendor_id,id"), api("vendors?select=id,name&order=name")]);
+  const body = rows.map(p => `<tr>
+    <td>${esc(p.name)}</td><td>${esc(p.vendors?.name)}</td>
+    <td><input class="in sm" type="number" step="0.01" min="0" value="${esc(p.price)}" data-act="price" data-id="${p.id}"></td>
+    <td><input type="checkbox" ${p.active ? "checked" : ""} data-act="pactive" data-id="${p.id}" aria-label="Active"></td>
+    <td><button class="btn bad" data-act="pdel" data-id="${p.id}">Delete</button></td></tr>`).join("");
+  $("#view").innerHTML = `<h1>Products</h1><p id="note" class="msg"></p>
+    <div class="card"><h2 style="font-size:1.1rem;margin-bottom:12px">Add a product</h2><div class="grid">
+      <div><label for="np1">Vendor</label><select class="in" id="np1">${vendors.map(v => `<option value="${esc(v.id)}">${esc(v.name)}</option>`).join("")}</select></div>
+      <div><label for="np2">Name</label><input class="in" id="np2"></div>
+      <div><label for="np3">Price</label><input class="in" id="np3" type="number" step="0.01" min="0"></div>
+      <div><label for="np4">Picture style</label><select class="in" id="np4">${opts(ARTS)}</select></div>
+      <div><button class="btn sun" data-act="padd">Add product</button></div></div></div>
+    <div class="card scroll"><table><thead><tr><th>Name</th><th>Vendor</th><th>Price</th><th>Active</th><th></th></tr></thead><tbody>${body}</tbody></table></div>`;
+}
+
+/* ---------- vendors ---------- */
+async function vVendors(){
+  const rows = await api("vendors?select=*&order=created_at,name");
+  const body = rows.map(v => `<tr><td>${esc(v.name)}<br><span class="muted">${esc(v.id)}</span></td><td>${esc(v.category)}</td><td>${esc(v.eta)}</td><td>${money(v.min_order)}</td>
+    <td><input type="checkbox" ${v.active ? "checked" : ""} data-act="vactive" data-id="${esc(v.id)}" aria-label="Active"></td></tr>`).join("");
+  $("#view").innerHTML = `<h1>Vendors</h1><p id="note" class="msg"></p>
+    <div class="card"><h2 style="font-size:1.1rem;margin-bottom:12px">Add a vendor</h2><div class="grid">
+      <div><label for="nv1">Short id (no spaces)</label><input class="in" id="nv1" placeholder="e.g. mamas"></div>
+      <div><label for="nv2">Business name</label><input class="in" id="nv2"></div>
+      <div><label for="nv3">Category</label><select class="in" id="nv3">${opts(CATS)}</select></div>
+      <div><label for="nv4">Delivery time</label><input class="in" id="nv4" placeholder="30–40 min"></div>
+      <div><label for="nv5">Minimum order</label><input class="in" id="nv5" type="number" step="0.01" min="0" value="0"></div>
+      <div><label for="nv6">Picture style</label><select class="in" id="nv6">${opts(ARTS)}</select></div>
+      <div><button class="btn sun" data-act="vadd">Add vendor</button></div></div></div>
+    <div class="card scroll"><table><thead><tr><th>Vendor</th><th>Category</th><th>Delivery</th><th>Minimum</th><th>Active</th></tr></thead><tbody>${body}</tbody></table></div>`;
+}
+
+/* ---------- applications ---------- */
+async function vApps(){
+  const rows = await api("vendor_applications?select=*&order=created_at.desc&limit=100");
+  const body = rows.map(a => `<tr><td>${esc(a.business_name)}</td><td>${esc(a.contact)}</td><td>${esc(a.category)}</td><td>${new Date(a.created_at).toLocaleDateString()}</td>
+    <td><span class="tag ${a.status === "approved" ? "ok" : a.status === "pending" ? "wait" : ""}">${esc(a.status)}</span></td>
+    <td>${a.status === "pending" ? `<button class="btn sun" data-act="aset" data-v="approved" data-id="${a.id}">Approve</button> <button class="btn bad" data-act="aset" data-v="rejected" data-id="${a.id}">Reject</button>` : ""}</td></tr>`).join("");
+  $("#view").innerHTML = `<h1>Vendor applications</h1><p class="muted" style="margin-bottom:12px">Approving only marks the application. To put the shop on the site, add it in the Vendors tab.</p><p id="note" class="msg"></p>
+    <div class="card scroll"><table><thead><tr><th>Business</th><th>Contact</th><th>Category</th><th>Date</th><th>Status</th><th></th></tr></thead><tbody>${body || '<tr><td colspan="6" class="muted">No applications yet.</td></tr>'}</tbody></table></div>`;
+}
+
+/* ---------- riders ---------- */
+async function vRiders(){
+  const rows = await api("riders?select=*&order=created_at.desc&limit=200");
+  const body = rows.map(r => `<tr><td>${esc(r.full_name)}</td><td>${esc(r.phone)}</td><td>${esc(r.vehicle)}</td>
+    <td><span class="tag ${r.status === "approved" ? "ok" : r.status === "pending" ? "wait" : ""}">${esc(r.status)}</span></td>
+    <td>${r.status !== "approved" ? `<button class="btn sun" data-act="rset" data-v="approved" data-id="${r.id}">Approve</button> ` : ""}${r.status === "pending" ? `<button class="btn bad" data-act="rset" data-v="rejected" data-id="${r.id}">Reject</button>` : ""}</td></tr>`).join("");
+  $("#view").innerHTML = `<h1>Riders</h1><p class="muted" style="margin-bottom:12px">Only approved riders can be assigned to orders.</p><p id="note" class="msg"></p>
+    <div class="card scroll"><table><thead><tr><th>Name</th><th>Phone</th><th>Vehicle</th><th>Status</th><th></th></tr></thead><tbody>${body || '<tr><td colspan="5" class="muted">No riders yet.</td></tr>'}</tbody></table></div>`;
+}
+
+/* ---------- actions ---------- */
+async function patch(table, filter, body){ await api(`${table}?${filter}`, {method:"PATCH", body, prefer:"return=minimal"}); }
+async function act(el){
+  const a = el.dataset.act, id = el.dataset.id;
+  try{
+    if(a === "pay"){ await patch("orders", `id=eq.${id}`, {payment_status:"paid", status: el.dataset.status === "placed" ? "paid" : el.dataset.status}); return show("orders"); }
+    if(a === "status"){ await patch("orders", `id=eq.${id}`, {status: el.value}); return notice("Status updated."); }
+    if(a === "rider"){ await patch("orders", `id=eq.${id}`, {rider_id: el.value || null}); return notice("Rider updated."); }
+    if(a === "price"){ if(el.value === "" || Number(el.value) < 0) return notice("Enter a valid price.", true); await patch("products", `id=eq.${id}`, {price: Number(el.value)}); return notice("Price saved."); }
+    if(a === "pactive"){ await patch("products", `id=eq.${id}`, {active: el.checked}); return notice("Saved."); }
+    if(a === "pdel"){ if(!confirm("Delete this product?")) return; await api(`products?id=eq.${id}`, {method:"DELETE", prefer:"return=minimal"}); return show("products"); }
+    if(a === "padd"){
+      const name = $("#np2").value.trim(), price = $("#np3").value;
+      if(!name || price === "") return notice("Enter a name and price.", true);
+      await api("products", {method:"POST", prefer:"return=minimal", body:{vendor_id:$("#np1").value, name, price:Number(price), art:$("#np4").value}}); return show("products");
+    }
+    if(a === "vactive"){ await patch("vendors", `id=eq.${encodeURIComponent(id)}`, {active: el.checked}); return notice("Saved."); }
+    if(a === "vadd"){
+      const vid = $("#nv1").value.trim().toLowerCase(), name = $("#nv2").value.trim();
+      if(!/^[a-z0-9-]+$/.test(vid) || !name) return notice("Enter a short id (letters, numbers, dashes) and a business name.", true);
+      await api("vendors", {method:"POST", prefer:"return=minimal", body:{id:vid, name, category:$("#nv3").value, eta:$("#nv4").value.trim(), min_order:Number($("#nv5").value || 0), art:$("#nv6").value}}); return show("vendors");
+    }
+    if(a === "aset"){ await patch("vendor_applications", `id=eq.${id}`, {status: el.dataset.v}); return show("apps"); }
+    if(a === "rset"){ await patch("riders", `id=eq.${id}`, {status: el.dataset.v}); return show("riders"); }
+  }catch(err){ console.warn(err); notice("That did not save: " + err.message.slice(0, 160), true); }
+}
+$("#view").addEventListener("click", e => { const b = e.target.closest("button[data-act]"); if(b) act(b); });
+$("#view").addEventListener("change", e => { const t = e.target; if(t.dataset && t.dataset.act && t.tagName !== "BUTTON") act(t); });
+</script>
+</body>
+</html>
