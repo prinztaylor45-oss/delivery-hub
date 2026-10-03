@@ -67,7 +67,7 @@ nav.main a:hover{opacity:1;text-decoration:underline;text-underline-offset:6px;t
 .ph.real svg{visibility:hidden}
 
 /* sections */
-section{padding:72px 0}
+section{padding:72px 0;scroll-margin-top:60px}
 .sec-head{display:flex;justify-content:space-between;align-items:end;gap:20px;margin-bottom:28px;flex-wrap:wrap}
 .sec-head h2{font-size:clamp(1.9rem,3.6vw,2.8rem);font-weight:700}
 .sec-head p{color:var(--muted);max-width:32em}
@@ -168,6 +168,49 @@ footer a{text-decoration:none}footer a:hover{color:#fff}
 .bank dl{display:grid;grid-template-columns:auto 1fr;gap:6px 16px}
 .bank dt{color:var(--muted)}.bank dd{font-weight:600;word-break:break-all}
 .err{color:var(--danger);font-size:.9rem;margin-top:8px}
+
+/* ---------- phone layout: compact, fewer screens of scrolling ---------- */
+@media(max-width:640px){
+  body{font-size:16px}
+  .wrap{width:calc(100% - 32px)}
+  header.top .wrap{height:58px;gap:12px}
+  .logo{font-size:1.2rem;gap:8px;white-space:nowrap}
+  .logo .mark{width:30px;height:30px}
+  .cartbtn{padding:8px 14px}
+  .hero{padding:24px 0 30px}
+  .hero .wrap{gap:22px}
+  .hero h1{font-size:2.2rem}
+  .hero p.lead{margin:12px 0 16px;font-size:1rem}
+  .hero .cta{flex-wrap:nowrap;gap:10px}
+  .hero .cta .btn{flex:1;text-align:center;padding:13px 8px;font-size:.93rem}
+  .hero .facts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:20px;font-size:.76rem}
+  .hero .facts strong{font-size:.98rem}
+  .scene{border-radius:20px}
+  section{padding:34px 0}
+  .sec-head{margin-bottom:14px}
+  .sec-head h2{font-size:1.6rem}
+  .chips{gap:8px;margin-bottom:18px}
+  .chip{padding:7px 14px;font-size:.92rem}
+  .search{order:-1;flex:1 0 100%;margin:0;min-width:0}
+  .vendors{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:14px;margin-inline:-16px;padding:0 16px 10px;scrollbar-width:none}
+  .vendors::-webkit-scrollbar{display:none}
+  .vendor{flex:0 0 74%;scroll-snap-align:start}
+  .vendor .ph{height:118px}
+  .vendor .info{padding:12px 14px 14px}
+  .products{grid-template-columns:1fr 1fr;gap:14px 12px}
+  .prod h3{font-size:.98rem;margin-top:9px}
+  .prod .by{font-size:.82rem}
+  .prod .row{flex-direction:column;align-items:stretch;gap:8px}
+  .add{width:100%;padding:9px 6px}
+  .steps{grid-template-columns:1fr 1fr;row-gap:22px}
+  .step{padding-right:8px}
+  .step::before{width:36px;height:36px;margin-bottom:10px}
+  .step h3{font-size:1.05rem}.step p{font-size:.88rem}
+  .track{gap:26px}
+  .card{padding:22px}
+  .card h3{font-size:1.4rem}
+  footer{padding:30px 0}
+}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
 </style>
 </head>
@@ -191,7 +234,7 @@ footer a{text-decoration:none}footer a:hover{color:#fff}
       <p class="lead">Order dinner, groceries, household basics or send a parcel across the city. One basket can hold items from several vendors.</p>
       <div class="cta">
         <a class="btn sun" href="#shop">Start shopping</a>
-        <a class="btn line" href="#join">Sell on Delivery Hub</a>
+        <a class="btn line" href="#join">Sell with us</a>
       </div>
       <div class="facts">
         <div><strong>40 min</strong>average delivery</div>
