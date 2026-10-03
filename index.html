@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Delivery Hub – Delivery from every shop in town</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 40 40%27%3E%3Crect width=%2740%27 height=%2740%27 rx=%2711%27 fill=%27%23f7b32b%27/%3E%3Cpath d=%27M20 20L9.5 11M20 20L31 11M20 20V32%27 stroke=%27%2314213d%27 stroke-width=%273%27 stroke-linecap=%27round%27/%3E%3Ccircle cx=%2720%27 cy=%2720%27 r=%276.5%27 fill=%27%2314213d%27/%3E%3C/svg%3E">
+<meta name="description" content="Order food, groceries, household items and courier pickups from local vendors, delivered to your door. Pay by bank transfer or bank card.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#14213d; --navy-2:#223357; --sun:#f7b32b; --sea:#0e7c86;
+  --paper:#fbfbf9; --ash:#e8ebef; --ink:#1b2333; --muted:#5b667a; --danger:#b3261e;
+  --display:'Bricolage Grotesque',system-ui,sans-serif; --body:'Figtree',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--body);color:var(--ink);background:var(--paper);line-height:1.55;font-size:17px}
+img{display:block;max-width:100%}
+a{color:inherit}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--sea);outline-offset:2px}
+.wrap{width:min(1180px,100% - 40px);margin-inline:auto}
+h1,h2,h3{font-family:var(--display);line-height:1.05;letter-spacing:-.02em}
+
+/* header */
+header.top{position:sticky;top:0;z-index:30;background:var(--navy);color:#fff}
+header.top .wrap{display:flex;align-items:center;gap:28px;height:68px}
+.logo{font-family:var(--display);font-weight:800;font-size:1.55rem;letter-spacing:-.035em;text-decoration:none;display:flex;align-items:center;gap:10px;line-height:1}
+.logo i{width:14px;height:14px;background:var(--sun);border-radius:50% 50% 50% 0;display:inline-block;transform:rotate(-45deg)}
+nav.main{display:flex;gap:22px;margin-left:auto}
+nav.main a{text-decoration:none;font-weight:500;font-size:.97rem;opacity:.85}
+nav.main a:hover{opacity:1;text-decoration:underline;text-underline-offset:6px;text-decoration-color:var(--sun)}
+.cartbtn{background:var(--sun);color:var(--navy);border:0;border-radius:999px;padding:10px 18px;font-weight:600;cursor:pointer;display:flex;gap:10px;align-items:center}
+.cartbtn b{background:var(--navy);color:#fff;border-radius:999px;min-width:24px;height:24px;display:grid;place-items:center;font-size:.8rem;padding:0 6px}
+@media(max-width:760px){nav.main{display:none}.cartbtn{margin-left:auto}}
+
+/* hero */
+.hero{background:var(--navy);color:#fff;padding:56px 0 72px;overflow:hidden}
+.hero .wrap{display:grid;grid-template-columns:1.05fr 1fr;gap:48px;align-items:center}
+.hero h1{font-size:clamp(2.6rem,6vw,4.7rem);font-weight:800}
+.hero p.lead{margin:22px 0 30px;font-size:1.15rem;max-width:30em;color:#d3dae8}
+.btn{display:inline-block;border:0;border-radius:10px;padding:14px 24px;font-weight:600;cursor:pointer;text-decoration:none;font-size:1rem}
+.btn.sun{background:var(--sun);color:var(--navy)}
+.btn.sun:hover{background:#ffc247}
+.btn.line{border:2px solid #fff6;color:#fff;background:transparent}
+.btn.line:hover{border-color:#fff}
+.btn.navy{background:var(--navy);color:#fff}
+.btn.navy:hover{background:var(--navy-2)}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.hero .cta{display:flex;gap:14px;flex-wrap:wrap}
+.hero .facts{display:flex;gap:30px;margin-top:38px;color:#b9c3d7;font-size:.95rem;flex-wrap:wrap}
+.hero .facts strong{display:block;color:#fff;font-family:var(--display);font-size:1.5rem}
+.scene{border-radius:28px;overflow:hidden;box-shadow:0 30px 60px -20px #0008;animation:rise .9s cubic-bezier(.2,.7,.2,1) both}
+.scene-svg{width:100%;display:block}
+.rider{animation:ride 9s linear infinite}
+@keyframes ride{from{transform:translateX(-190px)}to{transform:translateX(620px)}}
+@keyframes rise{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}
+@media(max-width:900px){.hero .wrap{grid-template-columns:1fr}}
+
+/* photos: illustration by default, real photo replaces it when the file exists */
+.ph{position:relative;overflow:hidden;background:var(--tint,#d8dde6)}
+.ph svg{width:100%;height:100%;display:block}
+.ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .5s}
+.ph.real svg{visibility:hidden}
+
+/* sections */
+section{padding:72px 0}
+.sec-head{display:flex;justify-content:space-between;align-items:end;gap:20px;margin-bottom:28px;flex-wrap:wrap}
+.sec-head h2{font-size:clamp(1.9rem,3.6vw,2.8rem);font-weight:700}
+.sec-head p{color:var(--muted);max-width:32em}
+.chips{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:30px}
+.chip{border:1.5px solid var(--ash);background:#fff;border-radius:999px;padding:9px 18px;cursor:pointer;font-weight:500}
+.chip:hover{border-color:var(--navy)}
+.chip[aria-pressed=true]{background:var(--navy);border-color:var(--navy);color:#fff}
+.search{margin-left:auto;border:1.5px solid var(--ash);border-radius:999px;padding:9px 18px;background:#fff;min-width:220px}
+@media(max-width:700px){.search{margin-left:0;width:100%}}
+
+/* vendors */
+.vendors{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:22px}
+.vendor{background:#fff;border-radius:16px;overflow:hidden;border:1px solid var(--ash);cursor:pointer;text-align:left;padding:0;display:block;width:100%}
+.vendor:hover .ph img{transform:scale(1.05)}
+.vendor[aria-pressed=true]{outline:3px solid var(--sun)}
+.vendor .ph{height:150px}
+.vendor .info{padding:16px 18px 18px}
+.vendor h3{font-size:1.25rem;font-weight:700;margin-bottom:4px}
+.vendor .meta{color:var(--muted);font-size:.92rem;display:flex;gap:14px;flex-wrap:wrap}
+.vendor .rate{color:var(--ink);font-weight:600}
+
+/* products */
+.band{background:#fff;border-block:1px solid var(--ash)}
+.products{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:22px}
+.prod{display:flex;flex-direction:column}
+.prod .ph{aspect-ratio:4/3;border-radius:14px}
+.prod h3{font-size:1.1rem;font-weight:700;margin:12px 0 2px;letter-spacing:-.01em}
+.prod .by{color:var(--muted);font-size:.9rem}
+.prod .row{display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:12px}
+.price{font-family:var(--display);font-weight:700;font-size:1.25rem}
+.add{background:var(--navy);color:#fff;border:0;border-radius:8px;padding:9px 16px;cursor:pointer;font-weight:600}
+.add:hover{background:var(--navy-2)}
+.empty{color:var(--muted);padding:28px;border:2px dashed var(--ash);border-radius:14px;grid-column:1/-1}
+
+/* how */
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:0;counter-reset:s}
+.step{padding:0 26px 0 0;position:relative}
+.step::before{counter-increment:s;content:counter(s);display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:var(--sun);font-family:var(--display);font-weight:800;color:var(--navy);margin-bottom:16px}
+.step h3{font-size:1.2rem;margin-bottom:6px}
+.step p{color:var(--muted);font-size:.97rem}
+@media(max-width:860px){.steps{grid-template-columns:1fr 1fr;row-gap:34px}}
+
+/* tracking */
+.track{display:grid;grid-template-columns:1fr 1.2fr;gap:48px;align-items:start}
+.track form{display:flex;gap:10px;margin-top:20px}
+.track input{flex:1;border:1.5px solid var(--ash);background:#fff;border-radius:10px;padding:13px 16px}
+.timeline{list-style:none;padding:0;border-left:3px solid var(--ash);margin-left:10px}
+.timeline li{padding:0 0 26px 28px;position:relative;color:var(--muted)}
+.timeline li::before{content:"";position:absolute;left:-11px;top:3px;width:19px;height:19px;border-radius:50%;background:var(--paper);border:3px solid var(--ash)}
+.timeline li.done{color:var(--ink)}
+.timeline li.done::before{background:var(--sea);border-color:var(--sea)}
+.timeline li.now::before{background:var(--sun);border-color:var(--sun);box-shadow:0 0 0 6px #f7b32b44}
+.timeline b{display:block;font-family:var(--display);font-size:1.1rem}
+@media(max-width:860px){.track{grid-template-columns:1fr}}
+
+/* join */
+.join{display:grid;grid-template-columns:1fr 1fr;gap:26px}
+.card{background:#fff;border:1px solid var(--ash);border-radius:18px;padding:30px}
+.card.dark{background:var(--navy);color:#fff;border-color:var(--navy)}
+.card h3{font-size:1.7rem;margin-bottom:8px}
+.card p.sub{color:var(--muted);margin-bottom:20px}
+.card.dark p.sub{color:#c3cde0}
+label.f{display:block;font-weight:500;font-size:.92rem;margin:12px 0 5px}
+.in{width:100%;border:1.5px solid var(--ash);border-radius:10px;padding:12px 14px;background:#fff;color:var(--ink)}
+.msg{margin-top:14px;font-weight:500}
+.msg.ok{color:#8fe3c0}
+.card:not(.dark) .msg.ok{color:#0b7a4f}
+@media(max-width:860px){.join{grid-template-columns:1fr}}
+
+footer{background:var(--navy);color:#b9c3d7;padding:46px 0;font-size:.95rem}
+footer .wrap{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap}
+footer a{text-decoration:none}footer a:hover{color:#fff}
+
+/* drawer */
+.scrim{position:fixed;inset:0;background:#0a1226aa;opacity:0;pointer-events:none;transition:opacity .25s;z-index:40}
+.scrim.open{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:min(460px,100%);background:#fff;z-index:50;transform:translateX(100%);transition:transform .3s;display:flex;flex-direction:column}
+.drawer.open{transform:none}
+.drawer header{display:flex;justify-content:space-between;align-items:center;padding:20px 24px;border-bottom:1px solid var(--ash)}
+.drawer header h2{font-size:1.5rem}
+.x{background:none;border:0;font-size:1.8rem;line-height:1;cursor:pointer;padding:4px 10px}
+.drawer .body{flex:1;overflow:auto;padding:20px 24px}
+.drawer footer{background:#fff;color:var(--ink);border-top:1px solid var(--ash);padding:18px 24px;display:block}
+.line-item{display:grid;grid-template-columns:64px 1fr auto;gap:14px;align-items:center;padding:12px 0;border-bottom:1px solid var(--ash)}
+.line-item .ph{width:64px;height:64px;border-radius:10px}
+.line-item h4{font-size:1rem;font-weight:600}
+.line-item small{color:var(--muted)}
+.qty{display:flex;align-items:center;gap:8px;margin-top:6px}
+.qty button{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--ash);background:#fff;cursor:pointer}
+.sum{display:flex;justify-content:space-between;margin:4px 0;color:var(--muted)}
+.sum.total{color:var(--ink);font-weight:700;font-size:1.15rem;margin:10px 0 14px}
+.pay{display:grid;gap:10px;margin:8px 0}
+.pay label{display:flex;gap:12px;align-items:flex-start;border:1.5px solid var(--ash);border-radius:12px;padding:14px;cursor:pointer}
+.pay input{margin-top:5px}
+.pay label:has(input:checked){border-color:var(--navy);background:#f3f5f9}
+.pay small{color:var(--muted);display:block}
+.bank{background:#f3f5f9;border-radius:12px;padding:16px;margin:14px 0;font-size:.97rem}
+.bank dl{display:grid;grid-template-columns:auto 1fr;gap:6px 16px}
+.bank dt{color:var(--muted)}.bank dd{font-weight:600;word-break:break-all}
+.err{color:var(--danger);font-size:.9rem;margin-top:8px}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="logo" href="#top"><svg class="mark" viewBox="0 0 40 40" width="38" height="38" aria-hidden="true"><rect width="40" height="40" rx="11" fill="#f7b32b"/><g stroke="#14213d" stroke-width="3" stroke-linecap="round"><path d="M20 20L9.5 11M20 20L31 11M20 20V32"/></g><g fill="#14213d"><circle cx="9.5" cy="11" r="3.6"/><circle cx="31" cy="11" r="3.6"/><circle cx="20" cy="32" r="3.6"/></g><circle cx="20" cy="20" r="6.5" fill="#14213d"/><circle cx="20" cy="20" r="2.6" fill="#f7b32b"/></svg><span class="brand-name">Delivery Hub</span></a>
+    <nav class="main" aria-label="Main">
+      <a href="#shop">Shop</a><a href="#how">How it works</a><a href="#track">Track an order</a><a href="#join">Sell or ride with us</a>
+    </nav>
+    <button class="cartbtn" id="openCart" aria-label="Open cart">Cart <b id="cartCount">0</b></button>
+  </div>
+</header>
+
+<main id="top">
+<div class="hero">
+  <div class="wrap">
+    <div>
+      <h1>Every shop in town, at your door.</h1>
+      <p class="lead">Order dinner, groceries, household basics or send a parcel across the city. One basket can hold items from several vendors.</p>
+      <div class="cta">
+        <a class="btn sun" href="#shop">Start shopping</a>
+        <a class="btn line" href="#join">Sell on Delivery Hub</a>
+      </div>
+      <div class="facts">
+        <div><strong>40 min</strong>average delivery</div>
+        <div><strong>Bank-secured</strong>transfer or card</div>
+        <div><strong>Live status</strong>from shop to door</div>
+      </div>
+    </div>
+    <div class="scene" id="scene"></div>
+  </div>
+</div>
+
+<section id="shop">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2>Shops near you</h2>
+      <p>Pick a category or tap a shop to see only what it sells.</p>
+    </div>
+    <div class="chips" id="chips">
+      <input class="search" id="search" type="search" placeholder="Search products" aria-label="Search products">
+    </div>
+    <div class="vendors" id="vendors"></div>
+  </div>
+</section>
+
+<section class="band" id="items">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2 id="itemsTitle">Popular right now</h2>
+      <p id="itemsSub">Add items from any shop. Delivery is calculated at checkout.</p>
+    </div>
+    <div class="products" id="products"></div>
+  </div>
+</section>
+
+<section id="how">
+  <div class="wrap">
+    <div class="sec-head"><h2>From shelf to doorstep</h2></div>
+    <div class="steps">
+      <div class="step"><h3>Choose</h3><p>Browse shops and add what you need. Mix vendors in one order.</p></div>
+      <div class="step"><h3>Pay by bank</h3><p>Transfer to our account with your order reference, or pay with a bank card.</p></div>
+      <div class="step"><h3>We collect</h3><p>The vendor packs your order and a rider is assigned to pick it up.</p></div>
+      <div class="step"><h3>You receive</h3><p>Follow your rider live and confirm when it arrives.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="track">
+  <div class="wrap track">
+    <div>
+      <h2 style="font-size:clamp(1.9rem,3.6vw,2.8rem)">Where is my order?</h2>
+      <p style="color:var(--muted);margin-top:10px">Enter the reference you received at checkout.</p>
+      <form id="trackForm">
+        <input id="trackRef" placeholder="e.g. DH-48213" aria-label="Order reference" required>
+        <button class="btn navy" type="submit">Track</button>
+      </form>
+      <p class="err" id="trackErr" role="alert"></p>
+    </div>
+    <ol class="timeline" id="timeline" aria-live="polite">
+      <li><b>Order placed</b>Waiting for your reference.</li>
+      <li><b>Payment confirmed</b>We match your bank payment to the order.</li>
+      <li><b>Vendor is packing</b>Your items are being prepared.</li>
+      <li><b>Out for delivery</b>A rider is on the way.</li>
+      <li><b>Delivered</b>Enjoy.</li>
+    </ol>
+  </div>
+</section>
+
+<section id="join">
+  <div class="wrap">
+    <div class="sec-head"><h2>Grow with Delivery Hub</h2><p>We bring the customers and the riders. You bring the goods.</p></div>
+    <div class="join">
+      <div class="card dark">
+        <h3>Sell your products</h3>
+        <p class="sub">Open a storefront, set your prices, get paid weekly to your bank account.</p>
+        <form class="joinForm" data-kind="vendor">
+          <label class="f" for="v1">Business name</label><input class="in" id="v1" required>
+          <label class="f" for="v2">Phone or email</label><input class="in" id="v2" required>
+          <label class="f" for="v3">What do you sell?</label>
+          <select class="in" id="v3"><option>Food</option><option>Groceries</option><option>Household</option><option>Other</option></select>
+          <div style="margin-top:18px"><button class="btn sun" type="submit">Apply as a vendor</button></div>
+          <p class="msg ok" role="status"></p>
+        </form>
+      </div>
+      <div class="card">
+        <h3>Ride and earn</h3>
+        <p class="sub">Deliver on your own schedule with a bike, motorbike or car.</p>
+        <form class="joinForm" data-kind="rider">
+          <label class="f" for="r1">Full name</label><input class="in" id="r1" required>
+          <label class="f" for="r2">Phone</label><input class="in" id="r2" required>
+          <label class="f" for="r3">Your vehicle</label>
+          <select class="in" id="r3"><option>Bicycle</option><option>Motorbike</option><option>Car</option><option>On foot</option></select>
+          <div style="margin-top:18px"><button class="btn navy" type="submit">Apply as a rider</button></div>
+          <p class="msg ok" role="status"></p>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div><span class="logo" style="color:#fff"><svg class="mark" viewBox="0 0 40 40" width="38" height="38" aria-hidden="true"><rect width="40" height="40" rx="11" fill="#f7b32b"/><g stroke="#14213d" stroke-width="3" stroke-linecap="round"><path d="M20 20L9.5 11M20 20L31 11M20 20V32"/></g><g fill="#14213d"><circle cx="9.5" cy="11" r="3.6"/><circle cx="31" cy="11" r="3.6"/><circle cx="20" cy="32" r="3.6"/></g><circle cx="20" cy="20" r="6.5" fill="#14213d"/><circle cx="20" cy="20" r="2.6" fill="#f7b32b"/></svg><span class="brand-name">Delivery Hub</span></span><p style="margin-top:8px">Delivery from every shop in town.</p></div>
+    <div><a href="#shop">Shop</a><br><a href="#track">Track an order</a><br><a href="#join">Become a vendor</a></div>
+    <div id="footContact">support@example.com</div>
+  </div>
+</footer>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-label="Cart" aria-hidden="true">
+  <header><h2 id="drawerTitle">Your basket</h2><button class="x" id="closeCart" aria-label="Close cart">&times;</button></header>
+  <div class="body" id="drawerBody"></div>
+  <footer id="drawerFoot"></footer>
+</aside>
+
+<script>
+/* =========================================================
+   CONFIG – change everything about the business here.
+   ========================================================= */
+const CONFIG = {
+  brand: "Delivery Hub",
+  currency: "$",
+  deliveryFee: 2.50,          // per order
+  serviceFeePct: 0.03,        // marketplace fee shown to customers
+  supportContact: "support@example.com",
+  bank: {                     // REPLACE with the real receiving account
+    name: "Your Bank Name",
+    accountName: "Delivery Hub Ltd",
+    accountNumber: "0000000000",
+    branch: "Main Branch"
+  }
+};
+
+/* PHOTOS: every picture on the site is an illustration by default.
+   To use a real photo, save a JPG in the /images folder with the exact file name
+   shown in README.md (e.g. images/item-4.jpg, images/shop-corner.jpg). The photo
+   automatically replaces the illustration. Use photos you own or have licensed. */
+
+const CATS = ["All","Food","Groceries","Household","Courier"];
+
+const VENDORS = [
+  {id:"corner", name:"Corner Kitchen", cat:"Food", art:"chicken", tint:"#f6dfbd", rate:4.8, eta:"25–35 min", min:5},
+  {id:"slice",  name:"Slice House",    cat:"Food", art:"pizza", tint:"#f7cdb4", rate:4.6, eta:"30–40 min", min:8},
+  {id:"basket", name:"Green Basket Market", cat:"Groceries", art:"bag", tint:"#cfe6c8", rate:4.7, eta:"40–55 min", min:10},
+  {id:"row",    name:"Fresh Row Produce", cat:"Groceries", art:"crate", tint:"#dcebb9", rate:4.9, eta:"35–45 min", min:6},
+  {id:"home",   name:"HomeStock",      cat:"Household", art:"clean", tint:"#c9dcf0", rate:4.5, eta:"45–60 min", min:12},
+  {id:"swift",  name:"Swift Courier",  cat:"Courier", art:"parcel", tint:"#ecd9b6", rate:4.7, eta:"Pickup in 20 min", min:0}
+];
+
+const PRODUCTS = [
+  {id:1, v:"corner", name:"Grilled chicken plate", price:7.50, art:"chicken", tint:"#f6dfbd"},
+  {id:2, v:"corner", name:"Garden salad bowl", price:5.00, art:"salad", tint:"#dcebb9"},
+  {id:3, v:"corner", name:"Breakfast stack", price:6.00, art:"pancakes", tint:"#f8e6bd"},
+  {id:4, v:"slice", name:"Margherita pizza, large", price:11.00, art:"pizza", tint:"#f7cdb4"},
+  {id:5, v:"slice", name:"Pepperoni pizza, large", price:13.00, art:"pizza", tint:"#f3c0b4"},
+  {id:6, v:"basket", name:"Weekly staples box", price:24.00, art:"bag", tint:"#cfe6c8"},
+  {id:7, v:"basket", name:"Milk, 1 litre", price:1.80, art:"milk", tint:"#dde9f7"},
+  {id:8, v:"row", name:"Mixed vegetable crate", price:9.50, art:"crate", tint:"#dcebb9"},
+  {id:9, v:"row", name:"Seasonal fruit basket", price:12.00, art:"fruit", tint:"#f8d9c4"},
+  {id:10, v:"home", name:"Everyday cleaning kit", price:14.00, art:"clean", tint:"#c9dcf0"},
+  {id:11, v:"swift", name:"Small parcel, up to 2 kg", price:4.00, art:"parcel", tint:"#ecd9b6"},
+  {id:12, v:"swift", name:"Medium box, up to 10 kg", price:8.00, art:"boxes", tint:"#e6d3ae"}
+];
+
+/* Hand-drawn illustrations (viewBox 200 x 150). */
+const ART = {
+ pizza:`<circle cx="100" cy="80" r="56" fill="#e2a043"/><circle cx="100" cy="80" r="48" fill="#d6422c"/><circle cx="100" cy="80" r="43" fill="#f7cf5e"/><g fill="#a5271c"><circle cx="82" cy="64" r="7"/><circle cx="117" cy="68" r="7"/><circle cx="100" cy="94" r="7"/><circle cx="76" cy="90" r="6"/><circle cx="123" cy="95" r="6"/></g><g fill="#3f8a3c"><ellipse cx="100" cy="72" rx="6" ry="3" transform="rotate(30 100 72)"/><ellipse cx="90" cy="82" rx="6" ry="3" transform="rotate(-30 90 82)"/><ellipse cx="108" cy="82" rx="6" ry="3" transform="rotate(10 108 82)"/></g><path d="M100 80V24M100 80L149 108M100 80L51 108" stroke="#e2a043" stroke-width="2.5"/>`,
+ chicken:`<circle cx="100" cy="80" r="58" fill="#fff"/><circle cx="100" cy="80" r="47" fill="#eef1f5"/><ellipse cx="76" cy="88" rx="26" ry="17" fill="#fafafa" stroke="#dfe3ea"/><g fill="#d9dde4"><circle cx="66" cy="84" r="2"/><circle cx="76" cy="80" r="2"/><circle cx="84" cy="90" r="2"/><circle cx="70" cy="94" r="2"/></g><g transform="rotate(-22 114 74)"><ellipse cx="114" cy="74" rx="28" ry="15" fill="#b8651f"/><ellipse cx="108" cy="70" rx="14" ry="6" fill="#d58a3c"/><rect x="136" y="70" width="18" height="8" rx="4" fill="#f3e6cf"/></g><ellipse cx="112" cy="106" rx="24" ry="10" fill="#8fc65a"/>`,
+ salad:`<path d="M42 76H158A58 46 0 0 1 42 76Z" fill="#fff"/><path d="M52 90H148" stroke="#e5e9ef" stroke-width="3"/><g><circle cx="64" cy="68" r="14" fill="#7cbf4d"/><circle cx="86" cy="60" r="16" fill="#5fa83a"/><circle cx="112" cy="62" r="16" fill="#8cc95a"/><circle cx="136" cy="68" r="14" fill="#6ab240"/><circle cx="100" cy="68" r="12" fill="#4d9a33"/></g><g fill="#d63a2a"><circle cx="78" cy="58" r="6"/><circle cx="124" cy="56" r="6"/><circle cx="102" cy="52" r="5"/></g><circle cx="92" cy="70" r="5" fill="#f7d84a"/><circle cx="116" cy="72" r="5" fill="#f7d84a"/>`,
+ pancakes:`<ellipse cx="100" cy="114" rx="62" ry="10" fill="#0002"/><ellipse cx="100" cy="102" rx="50" ry="14" fill="#c98a3c"/><ellipse cx="100" cy="94" rx="50" ry="14" fill="#e8b66a"/><ellipse cx="100" cy="84" rx="48" ry="14" fill="#c98a3c"/><ellipse cx="100" cy="76" rx="48" ry="14" fill="#efc17a"/><path d="M60 76Q64 96 70 82Q76 100 82 80 Q100 84 118 80Q126 100 132 80Q138 94 140 76Q100 92 60 76Z" fill="#8a4b14"/><rect x="88" y="58" width="22" height="14" rx="3" fill="#ffe27a" transform="rotate(-6 99 65)"/>`,
+ bag:`<path d="M52 58H148L140 130H60Z" fill="#c9965a"/><path d="M52 58H148L146 72H54Z" fill="#b5803f"/><g transform="rotate(24 84 52)"><rect x="76" y="14" width="16" height="50" rx="8" fill="#e3b46a"/></g><g fill="#5fa83a"><ellipse cx="108" cy="46" rx="10" ry="18" transform="rotate(-18 108 46)"/><ellipse cx="124" cy="52" rx="8" ry="16" transform="rotate(22 124 52)"/></g><path d="M64 50L74 20L84 50Z" fill="#ef8a2d" transform="translate(30 4)"/><circle cx="68" cy="52" r="12" fill="#f08a24"/><rect x="78" y="86" width="44" height="24" rx="4" fill="#fff" opacity=".85"/>`,
+ milk:`<ellipse cx="100" cy="132" rx="46" ry="7" fill="#0002"/><rect x="76" y="54" width="48" height="76" fill="#fff"/><path d="M76 54L100 34L124 54Z" fill="#dfe8f5"/><path d="M100 34L124 54H100Z" fill="#cfdaec"/><rect x="76" y="82" width="48" height="26" fill="#4a7bd0"/><circle cx="100" cy="95" r="8" fill="#fff"/><rect x="76" y="54" width="48" height="76" fill="none" stroke="#c7d2e4" stroke-width="2"/>`,
+ crate:`<rect x="48" y="72" width="104" height="56" rx="4" fill="#b9803f"/><g stroke="#8d5d28" stroke-width="3"><path d="M48 90H152M48 108H152"/></g><g><circle cx="74" cy="64" r="17" fill="#d63a2a"/><circle cx="104" cy="58" r="18" fill="#4f9d3a"/><circle cx="132" cy="64" r="16" fill="#ee8a2c"/><path d="M60 52Q74 40 88 52" fill="none" stroke="#3f8a3c" stroke-width="5"/><path d="M118 42Q132 30 146 42" fill="none" stroke="#3f8a3c" stroke-width="5"/></g><circle cx="66" cy="58" r="4" fill="#fff" opacity=".4"/>`,
+ fruit:`<path d="M48 88H152L138 128H62Z" fill="#b9803f"/><g stroke="#8d5d28" stroke-width="3"><path d="M54 102H146M58 116H142"/></g><circle cx="80" cy="76" r="20" fill="#f08a24"/><circle cx="116" cy="72" r="20" fill="#d63a3a"/><path d="M122 54Q126 44 134 42" stroke="#4a8a30" stroke-width="4" fill="none"/><path d="M56 78Q100 36 148 74" stroke="#f5d442" stroke-width="12" fill="none" stroke-linecap="round"/><circle cx="74" cy="70" r="5" fill="#fff" opacity=".4"/>`,
+ clean:`<ellipse cx="100" cy="134" rx="62" ry="7" fill="#0002"/><path d="M52 78H108L102 128H58Z" fill="#3a8fd0"/><ellipse cx="80" cy="78" rx="28" ry="6" fill="#5aa8e0"/><path d="M56 76Q80 44 104 76" fill="none" stroke="#cfd6e6" stroke-width="4"/><rect x="124" y="70" width="28" height="58" rx="8" fill="#5db37e"/><rect x="130" y="54" width="16" height="18" rx="3" fill="#2d6b46"/><path d="M146 58H164L162 66H146Z" fill="#2d6b46"/><rect x="128" y="88" width="20" height="14" rx="3" fill="#fff" opacity=".8"/><g fill="none" stroke="#fff" stroke-width="2.5"><circle cx="172" cy="52" r="5"/><circle cx="182" cy="42" r="7"/><circle cx="170" cy="34" r="4"/></g>`,
+ parcel:`<ellipse cx="100" cy="132" rx="58" ry="7" fill="#0002"/><rect x="46" y="62" width="108" height="68" fill="#cf9c5b"/><path d="M46 62L66 42H174L154 62Z" fill="#dcae6f"/><path d="M154 62L174 42V110L154 130Z" fill="#b5803f"/><rect x="90" y="62" width="20" height="68" fill="#ecca90"/><rect x="112" y="98" width="30" height="20" rx="2" fill="#fff"/><g stroke="#aab" stroke-width="2"><path d="M116 104H138M116 110H132"/></g>`,
+ boxes:`<ellipse cx="100" cy="134" rx="68" ry="7" fill="#0002"/><rect x="38" y="82" width="78" height="50" fill="#cf9c5b"/><rect x="70" y="82" width="14" height="50" fill="#ecca90"/><rect x="92" y="44" width="70" height="88" fill="#b5803f"/><rect x="120" y="44" width="14" height="88" fill="#d9b072"/><rect x="100" y="100" width="22" height="16" rx="2" fill="#fff"/><path d="M44 74h30v8H44z" fill="#dcae6f"/>`
+};
+const DOTS = '<g fill="#fff" opacity=".45"><circle cx="18" cy="22" r="4"/><circle cx="176" cy="26" r="5"/><circle cx="30" cy="122" r="3"/><circle cx="170" cy="120" r="4"/><circle cx="150" cy="14" r="2.5"/></g>';
+
+const SCENE = `<svg class="scene-svg" viewBox="0 0 560 520" role="img" aria-label="A delivery rider riding past local shops at sunset">
+<rect width="560" height="520" fill="#1d2e52"/>
+<circle cx="430" cy="130" r="62" fill="#f7b32b"/><circle cx="430" cy="130" r="86" fill="#f7b32b" opacity=".15"/>
+<g fill="#2a3d68"><rect x="10" y="150" width="70" height="200"/><rect x="92" y="110" width="56" height="240"/><rect x="160" y="170" width="84" height="180"/><rect x="258" y="130" width="60" height="220"/><rect x="332" y="190" width="70" height="160"/><rect x="414" y="160" width="64" height="190"/><rect x="490" y="120" width="60" height="230"/></g>
+<g fill="#f7b32b" opacity=".85"><rect x="24" y="172" width="10" height="12"/><rect x="48" y="172" width="10" height="12"/><rect x="24" y="204" width="10" height="12"/><rect x="104" y="132" width="10" height="12"/><rect x="126" y="164" width="10" height="12"/><rect x="104" y="196" width="10" height="12"/><rect x="178" y="194" width="10" height="12"/><rect x="204" y="226" width="10" height="12"/><rect x="272" y="154" width="10" height="12"/><rect x="294" y="186" width="10" height="12"/><rect x="346" y="214" width="10" height="12"/><rect x="428" y="184" width="10" height="12"/><rect x="448" y="216" width="10" height="12"/><rect x="504" y="146" width="10" height="12"/><rect x="528" y="178" width="10" height="12"/></g>
+<g><rect x="24" y="268" width="168" height="124" fill="#f2e6d0"/><path d="M14 268H202L192 316H24Z" fill="#fff"/><path d="M14 268H48L44 316H24ZM82 268H116L116 316H92ZM150 268H184L188 316H162Z" fill="#d6422c"/><rect x="40" y="326" width="56" height="66" fill="#8a5a3c"/><rect x="108" y="330" width="68" height="36" fill="#cfe3f2"/><circle cx="142" cy="352" r="12" fill="#e2a043"/><circle cx="142" cy="352" r="8" fill="#d6422c"/></g>
+<g><rect x="210" y="280" width="168" height="112" fill="#e6efe0"/><path d="M200 280H388L378 326H210Z" fill="#fff"/><path d="M200 280H232L230 326H210ZM264 280H296L296 326H270ZM328 280H360L366 326H336Z" fill="#3a9a52"/><rect x="226" y="338" width="60" height="54" fill="#b9803f"/><circle cx="244" cy="332" r="12" fill="#d63a2a"/><circle cx="268" cy="330" r="12" fill="#4f9d3a"/><rect x="302" y="340" width="58" height="52" fill="#cfe3f2"/></g>
+<g><rect x="396" y="268" width="150" height="124" fill="#e5ebf6"/><path d="M386 268H556L546 316H396Z" fill="#fff"/><path d="M386 268H420L416 316H396ZM448 268H482L482 316H458ZM512 268H546L546 316H522Z" fill="#2f6fc0"/><rect x="412" y="330" width="50" height="62" fill="#223357"/><rect x="474" y="338" width="56" height="30" fill="#cf9c5b"/><rect x="486" y="372" width="44" height="20" fill="#b5803f"/></g>
+<rect x="0" y="392" width="560" height="22" fill="#9eaac2"/>
+<rect x="0" y="414" width="560" height="106" fill="#0f1a35"/>
+<path d="M0 474H560" stroke="#f7b32b" stroke-width="4" stroke-dasharray="26 22" opacity=".8"/>
+<g class="rider">
+<path d="M154 406L250 372V440Z" fill="#f7b32b" opacity=".22"/>
+<circle cx="30" cy="474" r="22" fill="#0a0f1f"/><circle cx="30" cy="474" r="9" fill="#8794b0"/>
+<circle cx="130" cy="474" r="22" fill="#0a0f1f"/><circle cx="130" cy="474" r="9" fill="#8794b0"/>
+<rect x="40" y="450" width="78" height="12" rx="6" fill="#f7b32b"/>
+<path d="M24 452Q22 428 42 428H76V452Z" fill="#f7b32b"/>
+<path d="M112 456L126 400H140L132 456Z" fill="#f7b32b"/>
+<rect x="120" y="392" width="30" height="7" rx="3" fill="#cfd6e6"/>
+<rect x="30" y="418" width="46" height="12" rx="6" fill="#0a0f1f"/>
+<rect x="-24" y="384" width="56" height="46" rx="7" fill="#0e7c86"/><path d="M4 398a8 8 0 1 1 16 0c0 8-8 15-8 15s-8-7-8-15Z" fill="#fff"/><circle cx="12" cy="398" r="3" fill="#0e7c86"/>
+<path d="M72 424L98 452" stroke="#1b2333" stroke-width="13" stroke-linecap="round"/>
+<rect x="56" y="374" width="28" height="50" rx="13" fill="#fff"/><rect x="56" y="396" width="28" height="7" fill="#f7b32b"/>
+<path d="M78 388L136 396" stroke="#fff" stroke-width="10" stroke-linecap="round"/>
+<circle cx="72" cy="360" r="13" fill="#a5714a"/>
+<path d="M57 360A15 15 0 0 1 87 360Z" fill="#0e7c86"/><rect x="82" y="356" width="10" height="5" rx="2" fill="#0a0f1f"/>
+</g>
+</svg>`;
+
+/* ========================================================= */
+const $ = s => document.querySelector(s);
+const money = n => CONFIG.currency + n.toFixed(2);
+const state = {cat:"All", vendor:null, q:"", cart:{}, view:"cart", orders:{}};
+
+document.querySelectorAll(".brand-name").forEach(e => e.textContent = CONFIG.brand);
+document.title = CONFIG.brand + " – Delivery from every shop in town";
+$("#footContact").textContent = CONFIG.supportContact;
+
+function photo(key, tint, label, art){
+  const d = document.createElement("div");
+  d.className = "ph"; d.style.setProperty("--tint", tint);
+  d.setAttribute("role","img"); d.setAttribute("aria-label", label);
+  d.innerHTML = `<svg viewBox="0 0 200 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${DOTS}<circle cx="100" cy="80" r="72" fill="#fff" opacity=".3"/>${ART[art]}</svg>`;
+  const i = new Image(); i.alt = ""; i.loading = "lazy";
+  i.onload = () => { d.appendChild(i); d.classList.add("real"); };
+  i.src = `images/${key}.jpg`;
+  return d;
+}
+
+/* hero illustration */
+$("#scene").innerHTML = SCENE;
+
+/* chips */
+CATS.forEach(c => {
+  const b = document.createElement("button");
+  b.className = "chip"; b.textContent = c; b.setAttribute("aria-pressed", c === "All");
+  b.onclick = () => { state.cat = c; state.vendor = null; render(); };
+  $("#chips").insertBefore(b, $("#search"));
+});
+$("#search").oninput = e => { state.q = e.target.value.trim().toLowerCase(); renderProducts(); };
+
+function renderChips(){
+  [...document.querySelectorAll(".chip")].forEach(b => b.setAttribute("aria-pressed", b.textContent === state.cat));
+}
+
+function renderVendors(){
+  const box = $("#vendors"); box.innerHTML = "";
+  VENDORS.filter(v => state.cat === "All" || v.cat === state.cat).forEach(v => {
+    const b = document.createElement("button");
+    b.className = "vendor"; b.setAttribute("aria-pressed", state.vendor === v.id);
+    b.appendChild(photo("shop-"+v.id, v.tint, v.name, v.art));
+    const info = document.createElement("div"); info.className = "info";
+    info.innerHTML = `<h3>${v.name}</h3><div class="meta"><span class="rate">${v.rate.toFixed(1)} rating</span><span>${v.eta}</span><span>${v.min ? "Min " + money(v.min) : "No minimum"}</span></div>`;
+    b.appendChild(info);
+    b.onclick = () => { state.vendor = state.vendor === v.id ? null : v.id; render(); if(state.vendor) $("#items").scrollIntoView({behavior:"smooth"}); };
+    box.appendChild(b);
+  });
+}
+
+function renderProducts(){
+  const box = $("#products"); box.innerHTML = "";
+  const vmap = Object.fromEntries(VENDORS.map(v => [v.id, v]));
+  let list = PRODUCTS.filter(p => (state.cat === "All" || vmap[p.v].cat === state.cat) && (!state.vendor || p.v === state.vendor) && (!state.q || (p.name + vmap[p.v].name).toLowerCase().includes(state.q)));
+  $("#itemsTitle").textContent = state.vendor ? vmap[state.vendor].name : (state.cat === "All" ? "Popular right now" : state.cat);
+  if(!list.length){ box.innerHTML = `<p class="empty">Nothing matches that search. Clear it or pick another category.</p>`; return; }
+  list.forEach(p => {
+    const el = document.createElement("article"); el.className = "prod";
+    el.appendChild(photo("item-"+p.id, p.tint, p.name, p.art));
+    el.insertAdjacentHTML("beforeend", `<h3>${p.name}</h3><span class="by">${vmap[p.v].name}</span><div class="row"><span class="price">${money(p.price)}</span><button class="add">Add to basket</button></div>`);
+    el.querySelector(".add").onclick = () => { addItem(p.id, 1); };
+    box.appendChild(el);
+  });
+}
+function render(){ renderChips(); renderVendors(); renderProducts(); }
+
+/* cart */
+function addItem(id, n){
+  state.cart[id] = (state.cart[id] || 0) + n;
+  if(state.cart[id] <= 0) delete state.cart[id];
+  updateCount(); if($("#drawer").classList.contains("open") && state.view === "cart") drawCart();
+}
+function updateCount(){ $("#cartCount").textContent = Object.values(state.cart).reduce((a,b) => a + b, 0); }
+function totals(){
+  const sub = Object.entries(state.cart).reduce((s,[id,q]) => s + PRODUCTS.find(p => p.id == id).price * q, 0);
+  const fee = sub ? CONFIG.deliveryFee : 0, svc = sub * CONFIG.serviceFeePct;
+  return {sub, fee, svc, total: sub + fee + svc};
+}
+function openDrawer(view){
+  state.view = view || "cart";
+  $("#drawer").classList.add("open"); $("#scrim").classList.add("open"); $("#drawer").setAttribute("aria-hidden","false");
+  drawCart();
+}
+function closeDrawer(){ $("#drawer").classList.remove("open"); $("#scrim").classList.remove("open"); $("#drawer").setAttribute("aria-hidden","true"); }
+$("#openCart").onclick = () => openDrawer("cart");
+$("#closeCart").onclick = closeDrawer; $("#scrim").onclick = closeDrawer;
+document.addEventListener("keydown", e => { if(e.key === "Escape") closeDrawer(); });
+
+function drawCart(){
+  const body = $("#drawerBody"), foot = $("#drawerFoot");
+  if(state.view === "done") return;
+  if(state.view === "cart"){
+    $("#drawerTitle").textContent = "Your basket";
+    const entries = Object.entries(state.cart);
+    if(!entries.length){ body.innerHTML = `<p class="empty" style="margin-top:10px">Your basket is empty. Add something from a shop to get started.</p>`; foot.innerHTML = ""; return; }
+    body.innerHTML = "";
+    const vmap = Object.fromEntries(VENDORS.map(v => [v.id, v]));
+    entries.forEach(([id,q]) => {
+      const p = PRODUCTS.find(x => x.id == id), row = document.createElement("div");
+      row.className = "line-item"; row.appendChild(photo("item-"+p.id, p.tint, p.name, p.art));
+      const mid = document.createElement("div");
+      mid.innerHTML = `<h4>${p.name}</h4><small>${vmap[p.v].name}</small><div class="qty"><button aria-label="Remove one">&minus;</button><span>${q}</span><button aria-label="Add one">+</button></div>`;
+      const [m,a] = mid.querySelectorAll("button"); m.onclick = () => addItem(p.id,-1); a.onclick = () => addItem(p.id,1);
+      row.appendChild(mid); row.insertAdjacentHTML("beforeend", `<strong>${money(p.price*q)}</strong>`); body.appendChild(row);
+    });
+    const t = totals();
+    foot.innerHTML = `<div class="sum"><span>Subtotal</span><span>${money(t.sub)}</span></div><div class="sum"><span>Delivery</span><span>${money(t.fee)}</span></div><div class="sum"><span>Service fee</span><span>${money(t.svc)}</span></div><div class="sum total"><span>Total</span><span>${money(t.total)}</span></div><button class="btn navy" style="width:100%" id="toCheckout">Continue to checkout</button>`;
+    $("#toCheckout").onclick = () => { state.view = "checkout"; drawCart(); };
+  } else if(state.view === "checkout"){
+    $("#drawerTitle").textContent = "Checkout";
+    const t = totals();
+    body.innerHTML = `
+      <label class="f" for="c1">Full name</label><input class="in" id="c1" autocomplete="name">
+      <label class="f" for="c2">Phone number</label><input class="in" id="c2" autocomplete="tel" inputmode="tel">
+      <label class="f" for="c3">Delivery address</label><textarea class="in" id="c3" rows="2" autocomplete="street-address"></textarea>
+      <label class="f" style="margin-top:20px">Payment</label>
+      <div class="pay">
+        <label><input type="radio" name="pm" value="transfer" checked><span><b>Bank transfer</b><small>Send the total to our account using your order reference. We confirm it and start your order.</small></span></label>
+        <label><input type="radio" name="pm" value="card"><span><b>Bank card</b><small>Pay now with a debit or credit card.</small></span></label>
+      </div>
+      <div id="cardBox" hidden>
+        <label class="f" for="k1">Name on card</label><input class="in" id="k1" autocomplete="cc-name">
+        <label class="f" for="k2">Card number</label><input class="in" id="k2" inputmode="numeric" autocomplete="cc-number" placeholder="0000 0000 0000 0000" maxlength="23">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div><label class="f" for="k3">Expiry</label><input class="in" id="k3" placeholder="MM/YY" autocomplete="cc-exp" maxlength="5"></div>
+          <div><label class="f" for="k4">Security code</label><input class="in" id="k4" inputmode="numeric" autocomplete="cc-csc" maxlength="4"></div>
+        </div>
+      </div>
+      <p class="err" id="coErr" role="alert"></p>`;
+    foot.innerHTML = `<div class="sum total"><span>Total</span><span>${money(t.total)}</span></div><button class="btn sun" style="width:100%" id="placeOrder">Place order</button><button class="btn" style="width:100%;margin-top:8px;background:none" id="backCart">Back to basket</button>`;
+    body.querySelectorAll("[name=pm]").forEach(r => r.onchange = () => { $("#cardBox").hidden = r.value !== "card" || !r.checked; });
+    $("#k2").oninput = e => { e.target.value = e.target.value.replace(/\D/g,"").slice(0,19).replace(/(.{4})/g,"$1 ").trim(); };
+    $("#k3").oninput = e => { let v = e.target.value.replace(/\D/g,"").slice(0,4); if(v.length > 2) v = v.slice(0,2) + "/" + v.slice(2); e.target.value = v; };
+    $("#backCart").onclick = () => { state.view = "cart"; drawCart(); };
+    $("#placeOrder").onclick = placeOrder;
+  }
+}
+
+function placeOrder(){
+  const err = m => { $("#coErr").textContent = m; return false; };
+  const name = $("#c1").value.trim(), phone = $("#c2").value.trim(), addr = $("#c3").value.trim();
+  if(!name || !phone || !addr) return err("Enter your name, phone number and delivery address.");
+  const pm = document.querySelector("[name=pm]:checked").value;
+  if(pm === "card"){
+    const num = $("#k2").value.replace(/\s/g,""), exp = $("#k3").value, cvc = $("#k4").value;
+    if(!$("#k1").value.trim() || num.length < 13 || !/^\d\d\/\d\d$/.test(exp) || cvc.length < 3) return err("Check your card details and try again.");
+    /* PRODUCTION: do NOT handle raw card numbers on this page. Replace this form with
+       your bank or gateway's hosted card fields / redirect, and confirm payment on your server. */
+  }
+  const ref = "DH-" + Math.floor(10000 + Math.random()*90000), t = totals();
+  state.orders[ref] = {t0: Date.now(), pm, total: t.total};
+  state.cart = {}; updateCount(); state.view = "done";
+  $("#drawerTitle").textContent = "Order placed";
+  $("#drawerBody").innerHTML = `<p style="font-size:1.1rem;margin-bottom:6px">Thanks, ${name.split(" ")[0]}. Your reference is</p><p class="price" style="font-size:2.2rem">${ref}</p>` + (pm === "transfer" ? `
+    <div class="bank"><p style="margin-bottom:10px"><b>Send ${money(t.total)} to:</b></p><dl>
+      <dt>Bank</dt><dd>${CONFIG.bank.name}</dd><dt>Account name</dt><dd>${CONFIG.bank.accountName}</dd>
+      <dt>Account no.</dt><dd>${CONFIG.bank.accountNumber}</dd><dt>Branch</dt><dd>${CONFIG.bank.branch}</dd>
+      <dt>Reference</dt><dd>${ref}</dd></dl></div>
+    <p style="color:var(--muted)">Put ${ref} as the payment reference so we can match it. We start your order as soon as the transfer is confirmed.</p>` :
+    `<p style="color:var(--muted);margin-top:10px">Your card payment was received. We are sending your order to the vendors.</p>`);
+  $("#drawerFoot").innerHTML = `<button class="btn navy" style="width:100%" id="trackNow">Track this order</button>`;
+  $("#trackNow").onclick = () => { closeDrawer(); $("#trackRef").value = ref; showTrack(ref); $("#track").scrollIntoView({behavior:"smooth"}); };
+}
+
+/* tracking – demo timeline. Replace showTrack's lookup with a call to your backend. */
+function showTrack(ref){
+  const o = state.orders[ref.toUpperCase()], items = [...$("#timeline").children];
+  $("#trackErr").textContent = "";
+  if(!o){ $("#trackErr").textContent = "No order found with that reference. Check it and try again."; return; }
+  const copy = [["Order placed","We have your order."],["Payment confirmed", o.pm === "transfer" ? "Your bank transfer has been matched." : "Your card payment went through."],["Vendor is packing","Your items are being prepared."],["Out for delivery","A rider is on the way."],["Delivered","Enjoy."]];
+  const idx = Math.min(4, Math.floor((Date.now() - o.t0) / 20000));
+  items.forEach((li,i) => { li.className = i < idx ? "done" : i === idx ? "now done" : ""; li.innerHTML = `<b>${copy[i][0]}</b>${copy[i][1]}`; });
+  if(idx < 4) setTimeout(() => showTrack(ref), 5000);
+}
+$("#trackForm").onsubmit = e => { e.preventDefault(); showTrack($("#trackRef").value.trim()); };
+
+/* vendor / rider sign-up (replace with a real submit to your backend) */
+document.querySelectorAll(".joinForm").forEach(f => f.onsubmit = e => {
+  e.preventDefault();
+  f.querySelector(".msg").textContent = f.dataset.kind === "vendor" ? "Application received. We will contact you within two working days." : "You are on the list. We will call you to arrange onboarding.";
+  f.reset();
+});
+
+render();
+</script>
+</body>
+</html>
