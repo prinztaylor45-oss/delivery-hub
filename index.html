@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Delivery Hub – Delivery from every shop in town</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 40 40%27%3E%3Crect width=%2740%27 height=%2740%27 rx=%2711%27 fill=%27%23f7b32b%27/%3E%3Cpath d=%27M20 20L9.5 11M20 20L31 11M20 20V32%27 stroke=%27%2314213d%27 stroke-width=%273%27 stroke-linecap=%27round%27/%3E%3Ccircle cx=%2720%27 cy=%2720%27 r=%276.5%27 fill=%27%2314213d%27/%3E%3C/svg%3E">
-<meta name="description" content="Order food, groceries, household items and courier pickups from local vendors, delivered to your door. Pay by bank transfer or bank card.">
+<meta name="description" content="Order food, groceries, household items and courier pickups from local vendors, delivered to your door. Pay by bank transfer.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
@@ -195,7 +195,7 @@ footer a{text-decoration:none}footer a:hover{color:#fff}
       </div>
       <div class="facts">
         <div><strong>40 min</strong>average delivery</div>
-        <div><strong>Bank-secured</strong>transfer or card</div>
+        <div><strong>Bank payment</strong>pay by transfer</div>
         <div><strong>Live status</strong>from shop to door</div>
       </div>
     </div>
@@ -231,7 +231,7 @@ footer a{text-decoration:none}footer a:hover{color:#fff}
     <div class="sec-head"><h2>From shelf to doorstep</h2></div>
     <div class="steps">
       <div class="step"><h3>Choose</h3><p>Browse shops and add what you need. Mix vendors in one order.</p></div>
-      <div class="step"><h3>Pay by bank</h3><p>Transfer to our account with your order reference, or pay with a bank card.</p></div>
+      <div class="step"><h3>Pay by bank</h3><p>Transfer to our account with your order reference. We confirm it and start your order.</p></div>
       <div class="step"><h3>We collect</h3><p>The vendor packs your order and a rider is assigned to pick it up.</p></div>
       <div class="step"><h3>You receive</h3><p>Follow your rider live and confirm when it arrives.</p></div>
     </div>
@@ -317,6 +317,11 @@ const CONFIG = {
   deliveryFee: 2.50,          // per order
   serviceFeePct: 0.03,        // marketplace fee shown to customers
   supportContact: "support@example.com",
+  cardPayments: false,        // set true only after a real card gateway is connected
+  supabase: {                 // public project URL + public (anon/publishable) key
+    url: "https://srqobuprjnnoxtcsvxic.supabase.co",
+    key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNycW9idXByam5ub3h0Y3N2eGljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEwMzQzMjAsImV4cCI6MjEwNjYxMDMyMH0.3yjB9YKl3IDmP3cmaOiHFem_gz3alceC2liqPDMy1jA"
+  },
   bank: {                     // REPLACE with the real receiving account
     name: "Your Bank Name",
     accountName: "Delivery Hub Ltd",
@@ -332,7 +337,7 @@ const CONFIG = {
 
 const CATS = ["All","Food","Groceries","Household","Courier"];
 
-const VENDORS = [
+let VENDORS = [
   {id:"corner", name:"Corner Kitchen", cat:"Food", art:"chicken", tint:"#f6dfbd", rate:4.8, eta:"25–35 min", min:5},
   {id:"slice",  name:"Slice House",    cat:"Food", art:"pizza", tint:"#f7cdb4", rate:4.6, eta:"30–40 min", min:8},
   {id:"basket", name:"Green Basket Market", cat:"Groceries", art:"bag", tint:"#cfe6c8", rate:4.7, eta:"40–55 min", min:10},
@@ -341,7 +346,7 @@ const VENDORS = [
   {id:"swift",  name:"Swift Courier",  cat:"Courier", art:"parcel", tint:"#ecd9b6", rate:4.7, eta:"Pickup in 20 min", min:0}
 ];
 
-const PRODUCTS = [
+let PRODUCTS = [
   {id:1, v:"corner", name:"Grilled chicken plate", price:7.50, art:"chicken", tint:"#f6dfbd"},
   {id:2, v:"corner", name:"Garden salad bowl", price:5.00, art:"salad", tint:"#dcebb9"},
   {id:3, v:"corner", name:"Breakfast stack", price:6.00, art:"pancakes", tint:"#f8e6bd"},
@@ -404,7 +409,28 @@ const SCENE = `<svg class="scene-svg" viewBox="0 0 560 520" role="img" aria-labe
 /* ========================================================= */
 const $ = s => document.querySelector(s);
 const money = n => CONFIG.currency + n.toFixed(2);
-const state = {cat:"All", vendor:null, q:"", cart:{}, view:"cart", orders:{}};
+const state = {cat:"All", vendor:null, q:"", cart:{}, view:"cart", orders:{}, tt:null};
+
+/* ---------- Supabase (plain fetch, no library) ---------- */
+const LIVE = !!(CONFIG.supabase.url && CONFIG.supabase.key);
+async function sb(path, body, minimal){
+  const r = await fetch(`${CONFIG.supabase.url}/rest/v1/${path}`, {
+    method: body === undefined ? "GET" : "POST",
+    headers: Object.assign({apikey: CONFIG.supabase.key, Authorization: "Bearer " + CONFIG.supabase.key, "Content-Type": "application/json"}, minimal ? {Prefer: "return=minimal"} : {}),
+    body: body === undefined ? undefined : JSON.stringify(body)
+  });
+  if(!r.ok) throw new Error(await r.text());
+  const t = await r.text(); return t ? JSON.parse(t) : null;
+}
+const TINTS = {chicken:"#f6dfbd",pizza:"#f7cdb4",bag:"#cfe6c8",crate:"#dcebb9",clean:"#c9dcf0",parcel:"#ecd9b6",salad:"#dcebb9",pancakes:"#f8e6bd",milk:"#dde9f7",fruit:"#f8d9c4",boxes:"#e6d3ae"};
+async function loadData(){
+  if(!LIVE) return;
+  try{
+    const [vs, ps] = await Promise.all([sb("vendors?select=*&active=eq.true&order=created_at,name"), sb("products?select=*&active=eq.true&order=id")]);
+    VENDORS = vs.map(v => ({id:v.id, name:v.name, cat:v.category, art:ART[v.art] ? v.art : "parcel", tint:TINTS[v.art] || "#e3e8ef", rate:Number(v.rating), eta:v.eta || "", min:Number(v.min_order)}));
+    PRODUCTS = ps.map(p => ({id:p.id, v:p.vendor_id, name:p.name, price:Number(p.price), art:ART[p.art] ? p.art : "parcel", tint:TINTS[p.art] || "#e3e8ef"}));
+  }catch(e){ console.warn("Could not load from Supabase, showing sample data.", e); }
+}
 
 document.querySelectorAll(".brand-name").forEach(e => e.textContent = CONFIG.brand);
 document.title = CONFIG.brand + " – Delivery from every shop in town";
@@ -519,7 +545,7 @@ function drawCart(){
       <label class="f" style="margin-top:20px">Payment</label>
       <div class="pay">
         <label><input type="radio" name="pm" value="transfer" checked><span><b>Bank transfer</b><small>Send the total to our account using your order reference. We confirm it and start your order.</small></span></label>
-        <label><input type="radio" name="pm" value="card"><span><b>Bank card</b><small>Pay now with a debit or credit card.</small></span></label>
+        ${CONFIG.cardPayments ? `<label><input type="radio" name="pm" value="card"><span><b>Bank card</b><small>Pay now with a debit or credit card.</small></span></label>` : ""}
       </div>
       <div id="cardBox" hidden>
         <label class="f" for="k1">Name on card</label><input class="in" id="k1" autocomplete="cc-name">
@@ -539,7 +565,7 @@ function drawCart(){
   }
 }
 
-function placeOrder(){
+async function placeOrder(){
   const err = m => { $("#coErr").textContent = m; return false; };
   const name = $("#c1").value.trim(), phone = $("#c2").value.trim(), addr = $("#c3").value.trim();
   if(!name || !phone || !addr) return err("Enter your name, phone number and delivery address.");
@@ -550,8 +576,19 @@ function placeOrder(){
     /* PRODUCTION: do NOT handle raw card numbers on this page. Replace this form with
        your bank or gateway's hosted card fields / redirect, and confirm payment on your server. */
   }
-  const ref = "DH-" + Math.floor(10000 + Math.random()*90000), t = totals();
-  state.orders[ref] = {t0: Date.now(), pm, total: t.total};
+  const t = totals(); let ref;
+  const btn = $("#placeOrder"); btn.disabled = true; btn.textContent = "Placing order…";
+  try{
+    if(LIVE){
+      ref = await sb("rpc/place_order", {p_name:name, p_phone:phone, p_address:addr, p_method:pm, p_items:Object.entries(state.cart).map(([id,q]) => ({id:Number(id), qty:q}))});
+    } else {
+      ref = "DH-" + Math.floor(10000 + Math.random()*90000);
+      state.orders[ref] = {t0: Date.now(), pm, total: t.total};
+    }
+  }catch(e){
+    console.warn(e); btn.disabled = false; btn.textContent = "Place order";
+    return err("We could not place your order. Check your connection and try again.");
+  }
   state.cart = {}; updateCount(); state.view = "done";
   $("#drawerTitle").textContent = "Order placed";
   $("#drawerBody").innerHTML = `<p style="font-size:1.1rem;margin-bottom:6px">Thanks, ${name.split(" ")[0]}. Your reference is</p><p class="price" style="font-size:2.2rem">${ref}</p>` + (pm === "transfer" ? `
@@ -566,25 +603,44 @@ function placeOrder(){
 }
 
 /* tracking – demo timeline. Replace showTrack's lookup with a call to your backend. */
-function showTrack(ref){
-  const o = state.orders[ref.toUpperCase()], items = [...$("#timeline").children];
-  $("#trackErr").textContent = "";
-  if(!o){ $("#trackErr").textContent = "No order found with that reference. Check it and try again."; return; }
-  const copy = [["Order placed","We have your order."],["Payment confirmed", o.pm === "transfer" ? "Your bank transfer has been matched." : "Your card payment went through."],["Vendor is packing","Your items are being prepared."],["Out for delivery","A rider is on the way."],["Delivered","Enjoy."]];
-  const idx = Math.min(4, Math.floor((Date.now() - o.t0) / 20000));
+const STAT = {placed:0, paid:1, packing:2, out_for_delivery:3, delivered:4};
+async function showTrack(ref){
+  clearTimeout(state.tt);
+  const items = [...$("#timeline").children]; $("#trackErr").textContent = "";
+  let idx, pm;
+  try{
+    if(LIVE){
+      const rows = await sb("rpc/track_order", {p_ref: ref});
+      if(!rows || !rows.length){ $("#trackErr").textContent = "No order found with that reference. Check it and try again."; return; }
+      idx = STAT[rows[0].status] ?? 0; pm = rows[0].payment_method;
+    } else {
+      const o = state.orders[ref.toUpperCase()];
+      if(!o){ $("#trackErr").textContent = "No order found with that reference. Check it and try again."; return; }
+      idx = Math.min(4, Math.floor((Date.now() - o.t0) / 20000)); pm = o.pm;
+    }
+  }catch(e){ $("#trackErr").textContent = "We could not check that order right now. Please try again."; return; }
+  const copy = [["Order placed","We have your order."],["Payment confirmed", pm === "card" ? "Your card payment went through." : "Your bank transfer has been matched."],["Vendor is packing","Your items are being prepared."],["Out for delivery","A rider is on the way."],["Delivered","Enjoy."]];
   items.forEach((li,i) => { li.className = i < idx ? "done" : i === idx ? "now done" : ""; li.innerHTML = `<b>${copy[i][0]}</b>${copy[i][1]}`; });
-  if(idx < 4) setTimeout(() => showTrack(ref), 5000);
+  if(idx < 4) state.tt = setTimeout(() => showTrack(ref), LIVE ? 15000 : 5000);
 }
 $("#trackForm").onsubmit = e => { e.preventDefault(); showTrack($("#trackRef").value.trim()); };
 
 /* vendor / rider sign-up (replace with a real submit to your backend) */
-document.querySelectorAll(".joinForm").forEach(f => f.onsubmit = e => {
+document.querySelectorAll(".joinForm").forEach(f => f.onsubmit = async e => {
   e.preventDefault();
-  f.querySelector(".msg").textContent = f.dataset.kind === "vendor" ? "Application received. We will contact you within two working days." : "You are on the list. We will call you to arrange onboarding.";
-  f.reset();
+  const msg = f.querySelector(".msg"), v = [...f.querySelectorAll(".in")].map(x => x.value.trim()), vendor = f.dataset.kind === "vendor";
+  msg.textContent = "Sending…";
+  try{
+    if(LIVE){
+      if(vendor) await sb("vendor_applications", {business_name:v[0], contact:v[1], category:v[2]}, true);
+      else await sb("riders", {full_name:v[0], phone:v[1], vehicle:v[2]}, true);
+    }
+    msg.textContent = vendor ? "Application received. We will contact you within two working days." : "You are on the list. We will call you to arrange onboarding.";
+    f.reset();
+  }catch(err){ console.warn(err); msg.textContent = "Something went wrong. Please try again."; }
 });
 
-render();
+loadData().finally(render);
 </script>
 </body>
 </html>
